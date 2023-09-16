@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bortakuz <bortakuz@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/03 13:49:57 by bortakuz          #+#    #+#             */
-/*   Updated: 2023/09/03 17:23:48 by bortakuz         ###   ########.fr       */
+/*   Created: 2023/09/03 14:32:08 by bortakuz          #+#    #+#             */
+/*   Updated: 2023/09/03 17:24:27 by bortakuz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,23 @@ void	ft_printf_pid(int pd)
 	write(1, "\n", 1);
 }
 
-void	get_signal_bite(int sig)
+void	get_signal_bit(int sig, siginfo_t *info, void *context)
 {
 	static int	i = 0;
 	static char	c = 0;
 
+	(void )(context);
 	if (sig == SIGUSR1)
 		c += 1;
 	i++;
 	if (i == 8)
 	{
-		write(1, &c, 1);
+		if (c == '\0')
+			kill(info->si_pid, SIGUSR1);
+		else
+		{
+			write(1, &c, 1);
+		}
 		c = 0;
 		i = 0;
 	}
@@ -47,9 +53,15 @@ void	get_signal_bite(int sig)
 
 int	main(void)
 {
+	struct sigaction	sa;
+
+	sa.sa_sigaction = get_signal_bit;
+	sa.sa_flags = SA_SIGINFO;
 	ft_printf_pid(getpid());
-	signal(SIGUSR1, get_signal_bite);
-	signal(SIGUSR2, get_signal_bite);
+	if (sigaction(SIGUSR1, &sa, NULL) == -1) 
+		return (-1);
+	if (sigaction(SIGUSR2, &sa, NULL) == -1)
+		return (-1);
 	while (1)
 		pause();
 	return (0);

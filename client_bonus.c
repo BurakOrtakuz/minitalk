@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.c                                           :+:      :+:    :+:   */
+/*   client_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bortakuz <bortakuz@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 13:55:52 by bortakuz          #+#    #+#             */
-/*   Updated: 2023/09/03 17:32:51 by bortakuz         ###   ########.fr       */
+/*   Updated: 2023/09/03 17:24:04 by bortakuz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,15 @@ void	kill_character(int pid, char c)
 			kill(pid, SIGUSR1);
 		else
 			kill(pid, SIGUSR2);
-		usleep(100);
+		usleep(30);
 		i--;
 	}
+}
+
+void	control(int sig)
+{
+	if (sig == SIGUSR1)
+		write(1, "Massage get\n", 13);
 }
 
 int	ft_atoi(char *s)
@@ -57,8 +63,11 @@ int	ft_atoi(char *s)
 int	main(int ac, char **av)
 {
 	int	i;
+	int	pid;
 
+	pid = ft_atoi(av[1]);
 	i = 0;
+	signal(SIGUSR1, control);
 	if (ac != 3)
 	{
 		write(1, "Error\n", 6);
@@ -66,8 +75,9 @@ int	main(int ac, char **av)
 	}
 	while (av[2][i])
 	{
-		kill_character(ft_atoi(av[1]), av[2][i]);
+		kill_character(pid, av[2][i]);
 		i++;
 	}
+	kill_character(pid, '\0');
 	return (0);
 }
